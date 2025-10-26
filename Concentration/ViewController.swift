@@ -1,67 +1,82 @@
 import UIKit
 
 class ViewController: UIViewController {
-  private lazy var game = Concentration(numberOfPairsOfCards: numberOfPairsOfCards)
-  var numberOfPairsOfCards: Int = 8 {  // Default
-    didSet {
-      game = Concentration(numberOfPairsOfCards: numberOfPairsOfCards)
-    }
-  }
-  @IBOutlet private weak var flipCountLabel: UILabel!
-  @IBOutlet private var cardButtons: [UIButton]!
-  @IBOutlet weak var scoreLabel: UILabel!
-  @IBOutlet weak var titleLabel: UILabel!
-  @IBOutlet weak var newGameButton: UIButton!
-  @IBOutlet weak var shuffleButton: UIButton!  // New button for shuffling
-  @IBOutlet weak var hintButton: UIButton!  // New button for hint
-  @IBOutlet weak var settingsButton: UIButton!  // New button for settings
-  private var hintsLeft = 1
-  @IBAction func newGame() {
-    game.resetGame()
-    updateViewFromModel()
-  }
-  @IBAction func shuffleCards(_ sender: UIButton) {
-    game.shuffleCards()
-    updateViewFromModel()
-  }
-  @IBAction func hint(_ sender: UIButton) {
-    if hintsLeft > 0 {
-      hintsLeft -= 1
-      hintButton.isEnabled = false  // Disable after use
-      // Flip all non-matched cards up
-      for index in cards.indices {
-        if !game.cards[index].isMatched {
-          game.cards[index].isFaceUp = true
+    var numberOfPairsOfCards: Int = 8 {  // Default
+        didSet {
+            game = Concentration(numberOfPairsOfCards: numberOfPairsOfCards)
         }
-      }
-      updateViewFromModel()
-      // Flip back after 1 second
-      DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-        for index in self.game.cards.indices {
-          if !self.game.cards[index].isMatched {
-            self.game.cards[index].isFaceUp = false
-          }
-        }
-        self.updateViewFromModel()
-      }
     }
-  }
+    private lazy var game = Concentration(numberOfPairsOfCards: numberOfPairsOfCards)
+   
+    @IBOutlet private weak var flipCountLabel: UILabel!
+    @IBOutlet private var cardButtons: [UIButton]!
+    @IBOutlet weak var scoreLabel: UILabel!
+    @IBOutlet weak var titleLabel: UILabel!
+    @IBOutlet weak var newGameButton: UIButton!
+    @IBOutlet weak var shuffleButton: UIButton!  // New button for shuffling
+    @IBOutlet weak var hintButton: UIButton!  // New button for hint
+    @IBOutlet weak var settingsButton: UIButton!  // New button for settings
+    private var hintsLeft = 1
+    @IBAction func newGame() {
+        game.resetGame()
+        updateViewFromModel()
+    }
+    @IBAction func shuffleCards(_ sender: UIButton) {
+        game.shuffleCards()
+        updateViewFromModel()
+    }
+    @IBAction func hint(_ sender: UIButton) {
+        if hintsLeft > 0 {
+            hintsLeft -= 1
+            hintButton.isEnabled = false
+            for index in game.cards.indices {
+                if !game.cards[index].isMatched {
+                    game.showCard(at:index)
+                }
+            }
+            updateViewFromModel()
+            // Flip back after 1 second
+            //sleep(1)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                for index in self.game.cards.indices {
+                    if !self.game.cards[index].isMatched {
+                        self.game.hideCard(at: index)
+                    }
+                }
+                self.updateViewFromModel()
+            }
+        }
+    }
   @IBAction func settings(_ sender: UIButton) {
-    let settingsVC = SettingsViewController()
-    present(settingsVC, animated: true, completion: nil)
+      performSegue(withIdentifier: "toSettings", sender: sender)
+    //let settingsVC = SettingsViewController()
+    //present(settingsVC, animated: true, completion: nil)
   }
   override func viewDidLoad() {
     super.viewDidLoad()
-    // Load from UserDefaults
-    let defaults = UserDefaults.standard
-    indexTheme = defaults.integer(forKey: "selectedTheme")
-    numberOfPairsOfCards = defaults.integer(forKey: "selectedDifficulty")
-    if numberOfPairsOfCards == 0 { numberOfPairsOfCards = 8 }  // Default
-    if indexTheme == -1 {  // Random
-      indexTheme = Int.random(in: 0..<emojiThemes.count)
-    }
+      NotificationCenter.default.addObserver(self, selector: #selector(settingsUpdated), name: NSNotification.Name("SU"), object: nil)
+      //loadSettings()
     updateViewFromModel()
   }
+    deinit{
+        NotificationCenter.default.removeObserver(self)
+    }
+    @objc func settingsUpdated(){
+        loadSettings()
+        newGame()
+    }
+    
+    private func loadSettings(){ // Load from UserDefaults
+        let defaults = UserDefaults.standard
+        indexTheme = defaults.integer(forKey: "selectedTheme")
+        let numberOfPairsOfCards2 = defaults.integer(forKey: "selectedDifficulty")
+        print(numberOfPairsOfCards)
+        if numberOfPairsOfCards2 == 0 { numberOfPairsOfCards = 8 }  // Default
+        else{ numberOfPairsOfCards = numberOfPairsOfCards2}
+        if indexTheme == -1 {  // Random
+            indexTheme = Int.random(in: 0..<emojiThemes.count)
+        }
+    }
   @IBAction private func touchCard(_ sender: UIButton) {
     if let cardNumber = cardButtons.index(of: sender) {
       game.chooseCard(at: cardNumber)
@@ -89,8 +104,8 @@ class ViewController: UIViewController {
           ? #colorLiteral(red: 1, green: 0.5763723254, blue: 0, alpha: 0) : cardBackColor
       }
     }
-    scoreLabel.text = "Score: (game.score)"
-    flipCountLabel.text = "Flips: (game.flipCount)"
+    scoreLabel.text = "Score: \(game.score)"
+    flipCountLabel.text = "Flips: \(game.flipCount)"
   }
   private struct Theme {
     var name: String
@@ -121,7 +136,7 @@ class ViewController: UIViewController {
   private var indexTheme = 0 {
     didSet {
       print(indexTheme, emojiThemes[indexTheme].name)
-      emoji = Int
+        emoji = [Int:String]()
       titleLabel.text = emojiThemes[indexTheme].name
       emojiChoices = emojiThemes[indexTheme].emojis
       backgroundColor = emojiThemes[indexTheme].viewColor
@@ -146,7 +161,7 @@ class ViewController: UIViewController {
     settingsButton.setTitleColor(backgroundColor, for: .normal)
     settingsButton.backgroundColor = cardBackColor
   }
-  private var emoji = Int
+    private var emoji = [Int:String]()
   private func emoji(for card: Card) -> String {
     if emoji[card.identifier] == nil, emojiChoices.count > 0 {
       // For Swift 4.2 better use native  Int.random(in: ...)
@@ -156,16 +171,4 @@ class ViewController: UIViewController {
     return emoji[card.identifier] ?? "?"
   }
 }
-/*
-extension Int {
-var arc4random: Int {
-if self > 0 {
-return Int(arc4random_uniform(UInt32(self))) }
-else if self < 0 {
-return -Int(arc4random_uniform(UInt32(abs(self))))
-} else {
-return 0
-}
-}
-}
-*/
+

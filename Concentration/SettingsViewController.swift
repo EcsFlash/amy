@@ -5,7 +5,7 @@ class SettingsViewController: UIViewController {
   @IBAction func selectTheme(_ sender: UIButton) {
     let themes = ["Fruits", "Faces", "Animals", "Random"]
     guard let title = sender.currentTitle, let index = themes.firstIndex(of: title) else { return }
-    let selectedTheme = (title == "Random") ? -1 : index
+      let selectedTheme = (title == "Random") ? Int.random(in:0..<themes.count) : index
     UserDefaults.standard.set(selectedTheme, forKey: "selectedTheme")
   }
   @IBAction func selectDifficulty(_ sender: UISegmentedControl) {
@@ -13,6 +13,7 @@ class SettingsViewController: UIViewController {
     UserDefaults.standard.set(pairs[sender.selectedSegmentIndex], forKey: "selectedDifficulty")
   }
   @IBAction func startGame(_ sender: UIButton) {
+      NotificationCenter.default.post(name: NSNotification.Name("SU"), object: nil)
     dismiss(animated: true, completion: nil)
     // Game will reload settings in viewDidLoad or viewWillAppear if needed
   }

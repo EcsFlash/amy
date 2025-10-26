@@ -1,80 +1,96 @@
 import Foundation
 
 class Concentration {
-  private(set) var cards = Card
-  private(set) var flipCount = 0
-  private(set) var score = 0
-  private struct Points {
-    static let matchBonus = 1
-    static let missMatchPenalty = 2
-  }
-  private var indexOfOneAndOnlyFaceUpCard: Int? {
-    get {
-      var foundIndex: Int?
-      for index in cards.indices {
-        if cards[index].isFaceUp {
-          guard foundIndex == nil else { return nil }
-          foundIndex = index
+    private(set) var cards = [Card]()
+    private(set) var flipCount = 0
+    private(set) var score = 0
+    private struct Points {
+      static let matchBonus = 1
+      static let missMatchPenalty = 2
+    }
+    private var indexOfOneAndOnlyFaceUpCard: Int? {
+        get {
+            var foundIndex: Int?
+            for index in cards.indices {
+                if cards[index].isFaceUp {
+                    guard foundIndex == nil else { return nil }
+                    foundIndex = index
+                }
+            }
+            return foundIndex
         }
-      }
-      return foundIndex
-    }
-    set {
-      for index in cards.indices {
-        cards[index].isFaceUp = (index == newValue)
-      }
-    }
-  }
-  func chooseCard(at index: Int) {
-    assert(
-      cards.indices.contains(index),
-      "Concentration.chooseCard(at: (index)) : Choosen index out of range")
-    if !cards[index].isMatched {
-      flipCount += 1
-      if let matchIndex = indexOfOneAndOnlyFaceUpCard, matchIndex != index {
-        if cards[matchIndex].identifier == cards[index].identifier {
-          //cards match
-          cards[matchIndex].isMatched = true
-          cards[index].isMatched = true
-          // Increase the score
-          score += Points.matchBonus
-        } else {
-          //cards didn't match - Penalize
-          score -= Points.missMatchPenalty
+        set {
+            for index in cards.indices {
+                cards[index].isFaceUp = (index == newValue)
+            }
         }
-        cards[index].isFaceUp = true
-      } else {
-        indexOfOneAndOnlyFaceUpCard = index
-      }
     }
-  }
-  func resetGame() {
-    flipCount = 0
-    score = 0
-    for index in cards.indices {
-      cards[index].isFaceUp = false
-      cards[index].isMatched = false
+    func getAllCards() -> [Card]{
+        return cards;
     }
-    cards.shuffle()
-  }
-  func shuffleCards() {
-    for index in cards.indices {
-      if !cards[index].isMatched {
-        cards[index].isFaceUp = false
-      }
+    func chooseCard(at index: Int) {
+        assert(
+            cards.indices.contains(index),
+            "Concentration.chooseCard(at: (index)) : Choosen index out of range")
+        if !cards[index].isMatched {
+            flipCount += 1
+            if let matchIndex = indexOfOneAndOnlyFaceUpCard, matchIndex != index {
+                if cards[matchIndex].identifier == cards[index].identifier {
+                    cards[matchIndex].isMatched = true
+                    cards[index].isMatched = true
+                    score += Points.matchBonus
+                } else {
+                    score -= Points.missMatchPenalty
+                }
+                cards[index].isFaceUp = true
+            } else {
+                indexOfOneAndOnlyFaceUpCard = index
+            }
+        }
     }
-    cards.shuffle()
-  }
-  init(numberOfPairsOfCards: Int) {
-    assert(
-      numberOfPairsOfCards > 0,
-      "Concentration.init((numberOfPairsOfCards)) : You must have at least one pair of cards")
-    for _ in 1...numberOfPairsOfCards {
-      let card = Card()
-      cards += [card, card]
+    func showCard(at index: Int) {
+        assert(
+            cards.indices.contains(index),
+            "Concentration.chooseCard(at: (index)) : Choosen index out of range")
+        if !cards[index].isMatched {
+            cards[index].isFaceUp = true;
+        }
     }
-    // Shuffle the cards
-    // For Swift 4.2 better use native shuffle() for sequences
-    cards.shuffle()
-  }
+    func hideCard(at index: Int) {
+        assert(
+            cards.indices.contains(index),
+            "Concentration.chooseCard(at: (index)) : Choosen index out of range"
+        )
+        if !cards[index].isMatched {
+            cards[index].isFaceUp = false;
+        }
+    }
+    func resetGame() {
+        flipCount = 0
+        score = 0
+        for index in cards.indices {
+            cards[index].isFaceUp = false
+            cards[index].isMatched = false
+        }
+        cards.shuffle()
+    }
+  
+    func shuffleCards() {
+        for index in cards.indices {
+            if !cards[index].isMatched {
+                cards[index].isFaceUp = false
+            }
+        }
+        cards.shuffle()
+    }
+    init(numberOfPairsOfCards: Int) {
+        assert(
+            numberOfPairsOfCards > 0,
+            "Concentration.init((numberOfPairsOfCards)) : You must have at least one pair of cards")
+        for _ in 1...numberOfPairsOfCards {
+            let card = Card()
+            cards += [card, card]
+        }
+        cards.shuffle()
+    }
 }
