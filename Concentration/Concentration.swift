@@ -4,6 +4,7 @@ class Concentration {
     private(set) var cards = [Card]()
     private(set) var flipCount = 0
     private(set) var score = 0
+    private(set) var hintsLeft = 1
     private struct Points {
       static let matchBonus = 1
       static let missMatchPenalty = 2
@@ -68,6 +69,7 @@ class Concentration {
     func resetGame() {
         flipCount = 0
         score = 0
+        hintsLeft = 1
         for index in cards.indices {
             cards[index].isFaceUp = false
             cards[index].isMatched = false
@@ -82,6 +84,9 @@ class Concentration {
             }
         }
         cards.shuffle()
+    }
+    func decHint(){
+        hintsLeft = 0
     }
     init(numberOfPairsOfCards: Int) {
         assert(

@@ -5,11 +5,12 @@ class SettingsViewController: UIViewController {
   @IBAction func selectTheme(_ sender: UIButton) {
     let themes = ["Fruits", "Faces", "Animals", "Random"]
     guard let title = sender.currentTitle, let index = themes.firstIndex(of: title) else { return }
-      let selectedTheme = (title == "Random") ? Int.random(in:0..<themes.count) : index
+      let selectedTheme = (title == "Random") ? Int.random(in:0..<(themes.count)-1) : index
     UserDefaults.standard.set(selectedTheme, forKey: "selectedTheme")
   }
   @IBAction func selectDifficulty(_ sender: UISegmentedControl) {
-    let pairs: [Int] = [8, 12, 24]
+    let pairs: [Int] = [6, 12, 24]
+      print("selector")
     UserDefaults.standard.set(pairs[sender.selectedSegmentIndex], forKey: "selectedDifficulty")
   }
   @IBAction func startGame(_ sender: UIButton) {

@@ -16,7 +16,7 @@ class ViewController: UIViewController {
     @IBOutlet weak var shuffleButton: UIButton!  // New button for shuffling
     @IBOutlet weak var hintButton: UIButton!  // New button for hint
     @IBOutlet weak var settingsButton: UIButton!  // New button for settings
-    private var hintsLeft = 1
+    
     @IBAction func newGame() {
         game.resetGame()
         updateViewFromModel()
@@ -26,8 +26,8 @@ class ViewController: UIViewController {
         updateViewFromModel()
     }
     @IBAction func hint(_ sender: UIButton) {
-        if hintsLeft > 0 {
-            hintsLeft -= 1
+        if game.hintsLeft > 0 {
+            game.decHint()
             hintButton.isEnabled = false
             for index in game.cards.indices {
                 if !game.cards[index].isMatched {
@@ -85,28 +85,53 @@ class ViewController: UIViewController {
       print("choosen card was not in cardButtons")
     }
   }
-  private func updateViewFromModel() {
-    for index in cardButtons.indices {
-      let button = cardButtons[index]
-      if index >= game.cards.count {
-        button.isHidden = true
-        continue
-      }
-      button.isHidden = false
-      let card = game.cards[index]
-      if card.isFaceUp {
-        button.setTitle(emoji(for: card), for: UIControl.State.normal)
-        button.backgroundColor = #colorLiteral(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
-      } else {
-        button.setTitle("", for: UIControl.State.normal)
-        button.backgroundColor =
-          card.isMatched
-          ? #colorLiteral(red: 1, green: 0.5763723254, blue: 0, alpha: 0) : cardBackColor
-      }
+    private func updateViewFromModel() {
+        print("Updating view with \(game.cards.count) cards")
+        for index in cardButtons.indices {
+            print(index)
+            let button = cardButtons[index]
+            if index >= game.cards.count {
+                print("gg")
+                cardButtons[index].isHidden = true
+                continue
+            }
+            button.isHidden = false
+            let card = game.cards[index]
+            if card.isFaceUp {
+                button.setTitle(emoji(for: card), for: UIControl.State.normal)
+                button.backgroundColor = #colorLiteral(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
+            } else {
+                button.setTitle("", for: UIControl.State.normal)
+                button.backgroundColor = card.isMatched ? #colorLiteral(red: 1, green: 0.5763723254, blue: 0, alpha: 0) : cardBackColor
+            }
+        }
+        hintButton.isEnabled = (game.hintsLeft == 1) ? true : false
+        scoreLabel.text = "Score: \(game.score)"
+        flipCountLabel.text = "Flips: \(game.flipCount)"
     }
-    scoreLabel.text = "Score: \(game.score)"
-    flipCountLabel.text = "Flips: \(game.flipCount)"
-  }
+ // private func updateViewFromModel() {
+//    for index in cardButtons.indices {
+//      let button = cardButtons[index]
+//      if index >= game.cards.count {
+//        button.isHidden = true
+//        continue
+//      }
+//      button.isHidden = false
+//      let card = game.cards[index]
+//      if card.isFaceUp {
+//        button.setTitle(emoji(for: card), for: UIControl.State.normal)
+//        button.backgroundColor = #colorLiteral(red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0)
+//      } else {
+//        button.setTitle("", for: UIControl.State.normal)
+//        button.backgroundColor =
+//          card.isMatched
+//          ? #colorLiteral(red: 1, green: 0.5763723254, blue: 0, alpha: 0) : cardBackColor
+//      }
+//    }
+//    scoreLabel.text = "Score: \(game.score)"
+//    flipCountLabel.text = "Flips: \(game.flipCount)"
+      
+ // }
   private struct Theme {
     var name: String
     var emojis: [String]
